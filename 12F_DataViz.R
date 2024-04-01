@@ -1,3 +1,4 @@
+
 library(tidyverse)
 library(readxl)
 library(epitools)
@@ -5,19 +6,26 @@ library(epitools)
 wd = "C:/Users/dac23/Downloads"
 setwd(wd)
 
-Strep12F <- read_excel("12F_international_incidence_v2.xlsx", col_names = T)
-Vaccine <- read_excel("12F_international_incidence_v2.xlsx", sheet = "Vaccine", col_names = T)
-# view(Strep12F)
-glimpse(Strep12F)
-unique(sort(Strep12F$Region))
-unique(sort(Strep12F$Area))
-unique(sort(Strep12F$Period))
-unique(sort(Strep12F$Demographic))
-unique(sort(Strep12F$Reference))
+# 12F 
+# Strep <- read_excel("12F_international_incidence_v2_DC_01.04.2024.xlsx", col_names = T)
+
+# 1
+Strep <- read_excel("12F_international_incidence_v2_DC_01.04.2024.xlsx", sheet = "1_incidence_Clean", col_names = T)
+
+# Vaccine
+Vaccine <- read_excel("12F_international_incidence_v2_DC_01.04.2024.xlsx", sheet = "Vaccine", col_names = T)
+
+# view(Strep)
+glimpse(Strep)
+unique(sort(Strep$Region))
+unique(sort(Strep$Area))
+unique(sort(Strep$Period))
+unique(sort(Strep$Demographic))
+unique(sort(Strep$Reference))
 
 # Incidence components:
-unique(sort(Strep12F$Count))
-unique(sort(Strep12F$Total))
+unique(sort(Strep$Count))
+unique(sort(Strep$Total))
 
 # Vaccines:
 glimpse(Vaccine)
@@ -31,14 +39,14 @@ unique(sort(Vaccine$Vaccine))
 
 # Some arguments and grumblings ################################################
 # Idk. I think it's impossible to group the data considering the various Perd & Demo value?
-ZeroTot <- Strep12F %>% 
+ZeroTot <- Strep %>% 
   filter(Total == 0) %>% 
   # view() %>% 
   glimpse()
 # That's it. The source is located in Hong Kong (2017 & 2019).
 # I checked the Ref again and the data's fine & make sense.
 
-IntervalPerd <- Strep12F %>% 
+IntervalPerd <- Strep %>% 
   filter(grepl("-", Period)) %>% 
   view() %>% 
   glimpse()
@@ -87,10 +95,16 @@ FunYearMid <- function(eyy, delimit = "-") {
   return(midp)
 }
 
+Strep <- Strep %>% 
+  filter(!is.na(Count),
+         !is.na(Total)) %>% # Coz data is considered uncleaned (temporary)
+  mutate(Count = as.integer(Count),
+         Total = as.integer(Total))
+
 
 # 2. DataViz ###################################################################
 # 2.1. WorldWide
-Strep12F_1ww_ALLages <- Strep12F %>% 
+Strep_1ww_ALLages <- Strep %>% 
   # filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
   group_by(New_Period) %>% 
@@ -101,12 +115,11 @@ Strep12F_1ww_ALLages <- Strep12F %>%
   view() %>% 
   glimpse()
 
-# <TOBECONTINUED>
-Strep12F_1ww_GRages <- Strep12F %>% 
-  # filter(Total != 0) %>% # Only required when we group the data specifically
+Strep_1ww_GRages <- Strep %>% 
+  filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid),
          New_Demographic = "TOBECONTINUED") %>% 
-  group_by(New_Period) %>% 
+  group_by(New_Period, Demographic) %>% 
   summarise(sum_Count = sum(Count),
             sum_Total = sum(Total)) %>%
   ungroup() %>% 
@@ -114,18 +127,85 @@ Strep12F_1ww_GRages <- Strep12F %>%
   view() %>% 
   glimpse()
 
-max_up <- max(Strep12F_1ww_ALLages$Conf_Int$upper)+.01
-plot(Strep12F_1ww_ALLages$New_Period, Strep12F_1ww_ALLages$Conf_Int$proportion,
+# No grouping by ages
+max_up <- max(Strep_1ww_ALLages$Conf_Int$upper)+.01
+plot(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$proportion,
      ylim = c(0, max_up),
-     main = "The Incidence of 12F from Publictly-Available Data Worldwide")
-segments(Strep12F_1ww_ALLages$New_Period, Strep12F_1ww_ALLages$Conf_Int$lower,
-         Strep12F_1ww_ALLages$New_Period, Strep12F_1ww_ALLages$Conf_Int$upper, col = "black")
+     main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
+segments(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$lower,
+         Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$upper, col = "black")
 
+# Grouping by ages
+# Define the desired colors for each demographic value
+col_map <- c("<5" = "indianred4", # < 5
+             
+             ">5" = "indianred3", # more or less 5-65
+             "5-14" = "indianred3",
+             "5-17" = "indianred3",
+             "5-19" = "indianred3",
+             "5-64" = "indianred3",
+             
+             "Children" = "indianred1",
+             "15-29" = "indianred1",
+             "15-44" = "indianred1",
+             "15-59" = "indianred1",
+             "15-64" = "indianred1",
+             "<16" = "indianred1",
+             "<18" = "indianred1",
+             
+             "Adults" = "seagreen1",
+             "≥16" = "seagreen1",
+             "≥18" = "seagreen1",
+             "18-49" = "seagreen1",
+             "19-49" = "seagreen1",
+             "30-49" = "seagreen1",
+             
+             "45-64" = "seagreen3",
+             "50-59" = "seagreen3",
+             "50-64" = "seagreen3",
+             
+             "≥60" = "purple3", # > 60
+             "≥65" = "purple3",
+             "All" = "black")
 
+crap_df <- Strep_1ww_GRages %>% 
+  mutate(Demographic2 = case_when(
+    Demographic == "<5"  ~ "Toddler",
+    Demographic %in% c(">5","5-14","5-17","5-19","5-64",
+                       "Children","15-29","15-44","15-59","15-64","<16","<18") ~ "Children",
+    
+    Demographic %in% c("Adults","≥16","≥18","18-49","19-49","30-49",
+                       "45-64","50-59","50-64") ~ "Adults",
+    
+    Demographic %in% c("≥60","≥65") ~ "Elderly",
+    Demographic == "All" ~ "All",
+    TRUE ~ "other_value"
+  ))
 
+# Create a vector of colors based on the demographic values
+col <- col_map[Strep_1ww_GRages$Demographic]
+
+max_up <- max(Strep_1ww_GRages$Conf_Int$upper)+.01
+plot(Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$proportion,
+     cex = 1.5, pch = 19, col = col,
+     ylim = c(0, max_up),
+     main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
+segments(Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$lower,
+         Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$upper, col = col,)
+
+legend("topleft", legend = c("Toddler","Children","Adults","Elderly","Mixed ages"),
+       cex = 1.2, pch = 19,
+       col = c("Toddler" = "indianred4",
+               "Children" = c("indianred3","indianred1"),
+               "Adults" = c("seagreen1","seagreen3"),
+               "Elderly" = "purple3",
+               "Mixed ages" = "black"
+               ))
+
+# <TO BE CONTINUED>
 # 2.2. Facet-wrap by <Area>
 # <tobecontinued>
-Strep12F_2Area_ALLages <- Strep12F %>% 
+Strep_2Area_ALLages <- Strep %>% 
   # filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
   group_by(Area, New_Period) %>% 
@@ -136,16 +216,16 @@ Strep12F_2Area_ALLages <- Strep12F %>%
   view() %>% 
   glimpse()
 
-ggplot(Strep12F_2Area_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
+ggplot(Strep_2Area_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
   geom_point() +
   geom_errorbar(aes(ymin = Conf_Int$lower, ymax = Conf_Int$upper),
                 width = .1, color = "black") +
-  ggtitle("The Incidence of 12F Grouped by Area") +
+  ggtitle("The Incidence of Serotype 1 Grouped by Area") +
   facet_wrap(~ Area)
 
 
 # 2.3. Facet-wrap by <Region>
-Strep12F_3Region_ALLages <- Strep12F %>% 
+Strep_3Region_ALLages <- Strep %>% 
   # filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
   group_by(Area, New_Period, Region) %>% 
@@ -160,13 +240,13 @@ unique(sort(Vaccine$Vaccine))
 Vaccine$Vaccine <- factor(Vaccine$Vaccine,
                           levels = c("PCV7", "PCV10", "PCV13", "PCV10 & PCV13")) # coz of that weird automatic levels
 
-ggplot(Strep12F_3Region_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
+ggplot(Strep_3Region_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
   geom_point() +
   geom_errorbar(aes(ymin = Conf_Int$lower, ymax = Conf_Int$upper),
                 width = .1, color = "black") +
   geom_vline(data = Vaccine, aes(xintercept = Period, colour = Vaccine), linetype = "dashed") +
   scale_color_manual(values = c("PCV7" = "red", "PCV10" = "green", "PCV13" = "blue", "PCV10 & PCV13" = "purple")) +
-  ggtitle("The Incidence of 12F Specific to Regions") +
+  ggtitle("The Incidence of Serotype 1 Specific to Regions") +
   facet_wrap(~ Region)
 
 
