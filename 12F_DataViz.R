@@ -131,7 +131,7 @@ Strep_1ww_GRages <- Strep %>%
 # No grouping by ages
 max_up <- max(Strep_1ww_ALLages$Conf_Int$upper)+.01
 plot(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$proportion,
-     ylim = c(0, max_up),
+     ylim = c(0, max_up), cex = Strep_1ww_ALLages$sum_Total/5000,
      main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
 segments(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$lower,
          Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$upper, col = "black")
