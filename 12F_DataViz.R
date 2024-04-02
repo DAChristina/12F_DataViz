@@ -4,6 +4,7 @@ library(readxl)
 library(epitools)
 
 wd = "C:/Users/dac23/Downloads"
+wd = "/home/ron/Downloads"
 setwd(wd)
 
 # 12F 
