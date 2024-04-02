@@ -116,7 +116,9 @@ Strep <- Strep %>%
 
 
 # 2. DataViz ###################################################################
-# 2.1. WorldWide
+# 2.1. WorldWide ###############################################################
+
+# No grouping by ages
 Strep_1ww_ALLages <- Strep %>% 
   # filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
@@ -128,6 +130,15 @@ Strep_1ww_ALLages <- Strep %>%
   # view() %>% 
   glimpse()
 
+max_up <- max(Strep_1ww_ALLages$Conf_Int$upper)+.01
+plot(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$proportion,
+     ylim = c(0, max_up), cex = Strep_1ww_ALLages$sum_Total/5000,
+     main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
+segments(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$lower,
+         Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$upper, col = "black")
+
+
+# Grouping by ages
 Strep_1ww_GRages <- Strep %>% 
   filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid),
@@ -140,15 +151,6 @@ Strep_1ww_GRages <- Strep %>%
   # view() %>% 
   glimpse()
 
-# No grouping by ages
-max_up <- max(Strep_1ww_ALLages$Conf_Int$upper)+.01
-plot(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$proportion,
-     ylim = c(0, max_up), cex = Strep_1ww_ALLages$sum_Total/5000,
-     main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
-segments(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$lower,
-         Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$upper, col = "black")
-
-# Grouping by ages
 # Define the desired colors for each demographic value
 col_map1 <- c("<5" = "indianred4", # < 5
               
@@ -204,9 +206,9 @@ legend("topleft", legend = c("Toddler","Children","Adults","Elderly","All"),
 
 
 
-# <TO BE CONTINUED>
-# 2.2. Facet-wrap by <Area>
-# <tobecontinued>
+# 2.2. Facet-wrap by <Area> ####################################################
+
+# No grouping by ages
 Strep_2Area_ALLages <- Strep %>% 
   # filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
@@ -215,7 +217,7 @@ Strep_2Area_ALLages <- Strep %>%
             sum_Total = sum(Total)) %>%
   ungroup() %>% 
   mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
-  view() %>% 
+  # view() %>% 
   glimpse()
 
 ggplot(Strep_2Area_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
@@ -226,7 +228,37 @@ ggplot(Strep_2Area_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
   facet_wrap(~ Area)
 
 
-# 2.3. Facet-wrap by <Region>
+# Grouping by ages
+Strep_2Area_GRages <- Strep %>% 
+  filter(Total != 0) %>% # Only required when we group the data specifically
+  mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
+  group_by(Area, New_Period, Demographic2) %>% 
+  summarise(sum_Count = sum(Count),
+            sum_Total = sum(Total)) %>%
+  ungroup() %>% 
+  mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
+  # view() %>% 
+  glimpse()
+
+ggplot(Strep_2Area_GRages, aes(x = New_Period, y = Conf_Int$proportion,
+                               color = factor(Demographic2,
+                                                      levels = c("Toddler",
+                                                                 "Children",
+                                                                 "Adults",
+                                                                 "Elderly",
+                                                                 "All")))) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Conf_Int$lower, ymax = Conf_Int$upper),
+                width = .1) +
+  scale_color_manual(values = col_map2, name = "Demographic") +
+  ggtitle("The Incidence of Serotype 1 Grouped by Area") +
+  facet_wrap(~ Area)
+
+
+
+# 2.3. Facet-wrap by <Region> ##################################################
+
+# No grouping by ages
 Strep_3Region_ALLages <- Strep %>% 
   # filter(Total != 0) %>% # Only required when we group the data specifically
   mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
@@ -235,7 +267,7 @@ Strep_3Region_ALLages <- Strep %>%
             sum_Total = sum(Total)) %>%
   ungroup() %>% 
   mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
-  view() %>% 
+  # view() %>% 
   glimpse()
 
 unique(sort(Vaccine$Vaccine))
@@ -252,3 +284,14 @@ ggplot(Strep_3Region_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
   facet_wrap(~ Region)
 
 
+# Grouping by ages
+Strep_3Region_GRages <- Strep %>% 
+  filter(Total != 0) %>% # Only required when we group the data specifically
+  mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
+  group_by(Area, New_Period, Region, Demographic2) %>% 
+  summarise(sum_Count = sum(Count),
+            sum_Total = sum(Total)) %>%
+  ungroup() %>% 
+  mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
+  # view() %>% 
+  glimpse()
