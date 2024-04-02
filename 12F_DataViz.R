@@ -100,76 +100,7 @@ Strep <- Strep %>%
   filter(!is.na(Count),
          !is.na(Total)) %>% # Coz data is considered uncleaned (temporary)
   mutate(Count = as.integer(Count),
-         Total = as.integer(Total))
-
-
-# 2. DataViz ###################################################################
-# 2.1. WorldWide
-Strep_1ww_ALLages <- Strep %>% 
-  # filter(Total != 0) %>% # Only required when we group the data specifically
-  mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
-  group_by(New_Period) %>% 
-  summarise(sum_Count = sum(Count),
-            sum_Total = sum(Total)) %>%
-  ungroup() %>% 
-  mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
-  view() %>% 
-  glimpse()
-
-Strep_1ww_GRages <- Strep %>% 
-  filter(Total != 0) %>% # Only required when we group the data specifically
-  mutate(New_Period = sapply(Period, FUN = FunYearMid),
-         New_Demographic = "TOBECONTINUED") %>% 
-  group_by(New_Period, Demographic) %>% 
-  summarise(sum_Count = sum(Count),
-            sum_Total = sum(Total)) %>%
-  ungroup() %>% 
-  mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
-  view() %>% 
-  glimpse()
-
-# No grouping by ages
-max_up <- max(Strep_1ww_ALLages$Conf_Int$upper)+.01
-plot(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$proportion,
-     ylim = c(0, max_up), cex = Strep_1ww_ALLages$sum_Total/5000,
-     main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
-segments(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$lower,
-         Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$upper, col = "black")
-
-# Grouping by ages
-# Define the desired colors for each demographic value
-col_map <- c("<5" = "indianred4", # < 5
-             
-             ">5" = "indianred3", # more or less 5-65
-             "5-14" = "indianred3",
-             "5-17" = "indianred3",
-             "5-19" = "indianred3",
-             "5-64" = "indianred3",
-             
-             "Children" = "indianred1",
-             "15-29" = "indianred1",
-             "15-44" = "indianred1",
-             "15-59" = "indianred1",
-             "15-64" = "indianred1",
-             "<16" = "indianred1",
-             "<18" = "indianred1",
-             
-             "Adults" = "seagreen1",
-             "≥16" = "seagreen1",
-             "≥18" = "seagreen1",
-             "18-49" = "seagreen1",
-             "19-49" = "seagreen1",
-             "30-49" = "seagreen1",
-             
-             "45-64" = "seagreen3",
-             "50-59" = "seagreen3",
-             "50-64" = "seagreen3",
-             
-             "≥60" = "purple3", # > 60
-             "≥65" = "purple3",
-             "All" = "black")
-
-crap_df <- Strep_1ww_GRages %>% 
+         Total = as.integer(Total)) %>% 
   mutate(Demographic2 = case_when(
     Demographic == "<5"  ~ "Toddler",
     Demographic %in% c(">5","5-14","5-17","5-19","5-64",
@@ -183,25 +114,95 @@ crap_df <- Strep_1ww_GRages %>%
     TRUE ~ "other_value"
   ))
 
+
+# 2. DataViz ###################################################################
+# 2.1. WorldWide
+Strep_1ww_ALLages <- Strep %>% 
+  # filter(Total != 0) %>% # Only required when we group the data specifically
+  mutate(New_Period = sapply(Period, FUN = FunYearMid)) %>% 
+  group_by(New_Period) %>% 
+  summarise(sum_Count = sum(Count),
+            sum_Total = sum(Total)) %>%
+  ungroup() %>% 
+  mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
+  # view() %>% 
+  glimpse()
+
+Strep_1ww_GRages <- Strep %>% 
+  filter(Total != 0) %>% # Only required when we group the data specifically
+  mutate(New_Period = sapply(Period, FUN = FunYearMid),
+         New_Demographic = "TOBECONTINUED") %>% 
+  group_by(New_Period, Demographic2) %>% # Instead of Demographic
+  summarise(sum_Count = sum(Count),
+            sum_Total = sum(Total)) %>%
+  ungroup() %>% 
+  mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
+  # view() %>% 
+  glimpse()
+
+# No grouping by ages
+max_up <- max(Strep_1ww_ALLages$Conf_Int$upper)+.01
+plot(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$proportion,
+     ylim = c(0, max_up), cex = Strep_1ww_ALLages$sum_Total/5000,
+     main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
+segments(Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$lower,
+         Strep_1ww_ALLages$New_Period, Strep_1ww_ALLages$Conf_Int$upper, col = "black")
+
+# Grouping by ages
+# Define the desired colors for each demographic value
+col_map1 <- c("<5" = "indianred4", # < 5
+              
+              ">5" = "indianred3", # more or less 5-65
+              "5-14" = "indianred3",
+              "5-17" = "indianred3",
+              "5-19" = "indianred3",
+              "5-64" = "indianred3",
+              
+              "Children" = "indianred1",
+              "15-29" = "indianred1",
+              "15-44" = "indianred1",
+              "15-59" = "indianred1",
+              "15-64" = "indianred1",
+              "<16" = "indianred1",
+              "<18" = "indianred1",
+              
+              "Adults" = "seagreen1",
+              "≥16" = "seagreen1",
+              "≥18" = "seagreen1",
+              "18-49" = "seagreen1",
+              "19-49" = "seagreen1",
+              "30-49" = "seagreen1",
+              
+              "45-64" = "seagreen3",
+              "50-59" = "seagreen3",
+              "50-64" = "seagreen3",
+              
+              "≥60" = "purple3", # > 60
+              "≥65" = "purple3",
+              "All" = "black")
+
+col_map2 <- c("Toddler" = "indianred4", # < 5
+              "Children" = "indianred3", # more or less 5-65
+              "Adults" = "seagreen3",
+              "Elderly" = "purple3", # > 60
+              "All" = "black")
+
 # Create a vector of colors based on the demographic values
-col <- col_map[Strep_1ww_GRages$Demographic]
+col <- col_map2[Strep_1ww_GRages$Demographic2] # Instead of Demographic
 
 max_up <- max(Strep_1ww_GRages$Conf_Int$upper)+.01
 plot(Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$proportion,
-     cex = 1.5, pch = 19, col = col,
-     ylim = c(0, max_up), cex = Strep_1ww_ALLages$sum_Total/5000,
+     pch = 19, col = col,
+     ylim = c(0, max_up), cex = 1.5, # cex = Strep_1ww_GRages$sum_Total/800, 
      main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
 segments(Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$lower,
          Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$upper, col = col,)
 
-legend("topleft", legend = c("Toddler","Children","Adults","Elderly","Mixed ages"),
-       cex = 1.2, pch = 19,
-       col = c("Toddler" = "indianred4",
-               "Children" = c("indianred3","indianred1"),
-               "Adults" = c("seagreen1","seagreen3"),
-               "Elderly" = "purple3",
-               "Mixed ages" = "black"
-               ))
+legend("topleft", legend = c("Toddler","Children","Adults","Elderly","All"),
+       cex = 1, pch = 19, bty = "n", bg = "transparent",
+       col = col_map2)
+
+
 
 # <TO BE CONTINUED>
 # 2.2. Facet-wrap by <Area>
@@ -251,5 +252,3 @@ ggplot(Strep_3Region_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
   facet_wrap(~ Region)
 
 
-
-################################################################################
