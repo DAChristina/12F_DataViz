@@ -189,7 +189,7 @@ col <- col_map[Strep_1ww_GRages$Demographic]
 max_up <- max(Strep_1ww_GRages$Conf_Int$upper)+.01
 plot(Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$proportion,
      cex = 1.5, pch = 19, col = col,
-     ylim = c(0, max_up),
+     ylim = c(0, max_up), cex = Strep_1ww_ALLages$sum_Total/5000,
      main = "The Incidence of Serotype 1 from Publictly-Available Data Worldwide")
 segments(Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$lower,
          Strep_1ww_GRages$New_Period, Strep_1ww_GRages$Conf_Int$upper, col = col,)
