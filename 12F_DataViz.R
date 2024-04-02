@@ -279,7 +279,10 @@ ggplot(Strep_3Region_ALLages, aes(x = New_Period, y = Conf_Int$proportion)) +
   geom_errorbar(aes(ymin = Conf_Int$lower, ymax = Conf_Int$upper),
                 width = .1, color = "black") +
   geom_vline(data = Vaccine, aes(xintercept = Period, colour = Vaccine), linetype = "dashed") +
-  scale_color_manual(values = c("PCV7" = "red", "PCV10" = "green", "PCV13" = "blue", "PCV10 & PCV13" = "purple")) +
+  scale_color_manual(values = c("PCV7" = "gray80",
+                                "PCV10" = "gray60",
+                                "PCV13" = "gray20",
+                                "PCV10 & PCV13" = "gray10")) +
   ggtitle("The Incidence of Serotype 1 Specific to Regions") +
   facet_wrap(~ Region)
 
@@ -295,3 +298,28 @@ Strep_3Region_GRages <- Strep %>%
   mutate(Conf_Int = binom.exact(sum_Count, sum_Total)) %>% 
   # view() %>% 
   glimpse()
+
+Vaccine$Vaccine <- factor(Vaccine$Vaccine,
+                          levels = c("PCV7", "PCV10", "PCV13", "PCV10 & PCV13")) # coz of that weird automatic levels
+
+ggplot(Strep_3Region_GRages, aes(x = New_Period, y = Conf_Int$proportion,
+                               color = factor(Demographic2,
+                                              levels = c("Toddler",
+                                                         "Children",
+                                                         "Adults",
+                                                         "Elderly",
+                                                         "All")))) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Conf_Int$lower, ymax = Conf_Int$upper),
+                width = .1) +
+  scale_color_manual(values = c(col_map2,
+                                "PCV7" = "gray80",
+                                "PCV10" = "gray60",
+                                "PCV13" = "gray20",
+                                "PCV10 & PCV13" = "gray10"),
+                     name = "Demographic") +
+  geom_vline(data = Vaccine, aes(xintercept = Period,
+                                 colour = Vaccine),
+             linetype = "dashed") +
+  ggtitle("The Incidence of Serotype 1 Specific to Regions") +
+  facet_wrap(~ Region)
