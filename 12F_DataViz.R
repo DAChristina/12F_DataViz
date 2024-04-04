@@ -252,7 +252,7 @@ ggplot(Strep_2Area_GRages, aes(x = New_Period, y = Conf_Int$proportion,
                 width = .1) +
   scale_color_manual(values = col_map2, name = "Demographic") +
   ggtitle("The Incidence of Serotype 1 Grouped by Area") +
-  facet_wrap(~ Area)
+  facet_wrap(~ Area, scales = "free_y")
 
 
 
@@ -322,4 +322,4 @@ ggplot(Strep_3Region_GRages, aes(x = New_Period, y = Conf_Int$proportion,
                                  colour = Vaccine),
              linetype = "dashed") +
   ggtitle("The Incidence of Serotype 1 Specific to Regions") +
-  facet_wrap(~ Region)
+  facet_wrap(~ Region, scales = "free_y")
